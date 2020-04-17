@@ -5,6 +5,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from ServicesKeys import *
 import requests
 import sys
+import hashlib
+import time
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
@@ -35,7 +37,15 @@ def getCanvas():
 @app.route('/Marvel')
 def getMarvel():
     storynum = request.args.get('story')
-    return "<h1>Going to Marvel to find story #%s!</h1>" % storynum
+    ts = str(time.time())
+    hash = hashlib.md5((ts + marvelprivkey + marvelpubkey).encode()).hexdigest()
+    reqstring = 'http://gateway.marvel.com/v1/public/stories/{story}?apikey={apikey}&hash={hash}&ts={ts}'.format(story=storynum, apikey=marvelpubkey, hash=hash, ts=ts)
+    r = requests.get(reqstring)
+    #dict = r.json()
+    f = open("Story" + str(storynum) + ".txt", 'w+')
+    f.write(r.text)
+    return (r.text, r.status_code, r.headers.items())
+    #return "<h1>Going to Marvel to find story #%s!</h1>" % storynum
 
 if __name__ == '__main__':
     # standard port number for web services
