@@ -68,4 +68,4 @@ if __name__ == '__main__':
             portnum = sys.argv[i+1]
 
     # start running the app
-    app.run(host = 'localhost', port=portnum, debug=True)
+    app.run(port=portnum)
