@@ -12,22 +12,24 @@ import json
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 
+# authorized users to access flask
 users = {
-    "username": generate_password_hash("admin"),
-    "password": generate_password_hash("secret")
+    "admin": generate_password_hash("secret"),
+    "james": generate_password_hash("pi")
 }
-"""
+
+# authorized function from flask example
 @auth.verify_password
 def verify_password(username, password):
     if username in users:
         return check_password_hash(users.get(username), password)
     print('>Could not verify your access level for that URL. You have to login with proper credentials')
     return False
-"""
+
 
 # Canvas Route
 @app.route('/Canvas')
-#@auth.login_required
+@auth.login_required
 def getCanvas():
     # building url to send to canvas
     filename = request.args.get('file')
@@ -42,6 +44,7 @@ def getCanvas():
 
 # Marvel Route
 @app.route('/Marvel')
+@auth.login_required
 def getMarvel():
     # building url to send to marvel
     storynum = request.args.get('story')
@@ -49,6 +52,7 @@ def getMarvel():
     hash = hashlib.md5((ts + marvelprivkey + marvelpubkey).encode()).hexdigest()
     reqstring = 'http://gateway.marvel.com/v1/public/stories/{story}?apikey={apikey}&hash={hash}&ts={ts}'.format(story=storynum, apikey=marvelpubkey, hash=hash, ts=ts)
     r = requests.get(reqstring)
+    # writing file to directory
     f = open("Story" + str(storynum) + ".txt", 'w+')
     f.write(r.text)
     return (r.text, r.status_code, r.headers.items())
